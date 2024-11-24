@@ -1,9 +1,7 @@
-/* WolfOS Linker Script */
 ENTRY(_start)
 
 SECTIONS {
-    /* Kernel starts at 1MB */
-    . = 0x100000;
+    . = 0x100000;  /* Kernel start at 1MB */
 
     .text BLOCK(4K) : ALIGN(4K) {
         *(.text)
