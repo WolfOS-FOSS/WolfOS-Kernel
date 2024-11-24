@@ -5,7 +5,7 @@ set -e  # Exit on any error
 
 # Configuration
 KERNEL_SOURCE="kernel/src/kernel.cpp"
-BOOTLOADER="boot.asm"
+BOOTLOADER="kernel/src/boot.asm"
 OUTPUT_DIR="build"
 CROSS_PREFIX="x86_64-elf"  # Cross-compiler prefix
 
@@ -27,11 +27,6 @@ check_tool() {
         exit 1
     fi
 }
-
-check_tool nasm
-check_tool "$CROSS_PREFIX-g++"
-check_tool "$CROSS_PREFIX-ld"
-check_tool dd
 
 # Build bootloader
 echo -e "${YELLOW}Building bootloader...${NC}"
