@@ -32,12 +32,6 @@ check_tool() {
     echo -e "${GREEN}$1 is installed${NC}"
 }
 
-# Check for required tools
-check_tool nasm
-check_tool g++
-check_tool ld
-check_tool dd
-
 # Build bootloader
 echo -e "${YELLOW}Building bootloader...${NC}"
 nasm -f bin "$BOOTLOADER" -o "$OUTPUT_DIR/boot.bin"
