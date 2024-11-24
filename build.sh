@@ -7,7 +7,7 @@ set -e  # Exit on any error
 KERNEL_SOURCE="kernel/src/kernel.cpp"
 BOOTLOADER="kernel/src/boot/boot.asm"
 OUTPUT_DIR="build"
-CROSS_PREFIX="x86_64-linux-gnu-g++"  # Cross-compiler prefix
+CROSS_PREFIX="x86_64-linux-gnu"  # Cross-compiler prefix
 
 # Colors for output
 RED='\033[0;31m'
