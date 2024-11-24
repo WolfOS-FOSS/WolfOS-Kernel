@@ -114,13 +114,20 @@ find_kernel:
     mov si, kernel_found_msg
     call print_string
     
-    ; Set up the segment registers for the kernel
-    mov ax, KERNEL_LOAD_ADDR   ; Load the kernel's segment address
+    ; Set up the stack for the kernel (optional, but good practice for C++ programs)
+    mov ax, KERNEL_LOAD_ADDR   ; Kernel's base address
+    mov ss, ax                 ; Set up the stack segment (it can point to the kernel area)
+    mov sp, 0x7C00             ; Stack pointer, just an example
+
+    ; Set up DS and ES to point to the kernel
+    mov ax, KERNEL_LOAD_ADDR   ; Kernel's segment address
     mov ds, ax                 ; Set DS to point to the kernel memory
     mov es, ax                 ; Set ES to point to the kernel memory
     
-    ; Jump to the kernel's entry point
-    jmp 0x0000:0x0000           ; Jump to the kernel starting at offset 0
+    ; Now jump to the C++ kernel entry point
+    ; Assuming the kernel's entry point is at 0x1000 (or KERNEL_LOAD_ADDR)
+    ; If using an entry point like '_start' from the kernel.o, make sure it's aligned properly
+    jmp 0x0000:0x1000          ; Jump to kernel start
 
 .wait_loop:
     loop .wait_loop
