@@ -5,7 +5,7 @@ set -e  # Exit on any error
 
 # Configuration
 KERNEL_SOURCE="kernel/src/kernel.cpp"
-BOOTLOADER="kernel/src/boot.asm"
+BOOTLOADER="kernel/src/boot/boot.asm"
 OUTPUT_DIR="build"
 CROSS_PREFIX="x86_64-elf"  # Cross-compiler prefix
 
