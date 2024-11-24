@@ -22,16 +22,6 @@ echo -e "${GREEN}Build directory created at $OUTPUT_DIR${NC}"
 
 echo -e "${YELLOW}Starting WolfOS build process...${NC}"
 
-# Check for required tools
-check_tool() {
-    echo -e "${YELLOW}Checking for tool: $1...${NC}"
-    if ! command -v $1 &> /dev/null; then
-        echo -e "${RED}Error: $1 is required but not installed.${NC}"
-        exit 1
-    fi
-    echo -e "${GREEN}$1 is installed${NC}"
-}
-
 # Build bootloader
 echo -e "${YELLOW}Building bootloader...${NC}"
 nasm -f bin "$BOOTLOADER" -o "$OUTPUT_DIR/boot.bin"
@@ -103,21 +93,17 @@ else
     echo -e "${GREEN}Kernel written successfully!${NC}"
 fi
 
-# Create ISO (optional)
-if command -v xorriso &> /dev/null; then
-    echo -e "${YELLOW}Creating bootable ISO...${NC}"
-    mkdir -p "$OUTPUT_DIR/iso/boot"
-    cp "$OUTPUT_DIR/wolf_os.img" "$OUTPUT_DIR/iso/boot/"
-    xorriso -as mkisofs -b boot/wolf_os.img -no-emul-boot -boot-load-size 4 \
-            -boot-info-table -o "$OUTPUT_DIR/wolf_os.iso" "$OUTPUT_DIR/iso"
-    if [ $? -ne 0 ]; then
-        echo -e "${RED}Failed to create bootable ISO${NC}"
-        exit 1
-    else
-        echo -e "${GREEN}Bootable ISO created successfully!${NC}"
-    fi
+# Create bootable ISO
+echo -e "${YELLOW}Creating bootable ISO...${NC}"
+mkdir -p "$OUTPUT_DIR/iso/boot"
+cp "$OUTPUT_DIR/wolf_os.img" "$OUTPUT_DIR/iso/boot/"
+xorriso -as mkisofs -b boot/wolf_os.img -no-emul-boot -boot-load-size 4 \
+        -boot-info-table -o "$OUTPUT_DIR/wolf_os.iso" "$OUTPUT_DIR/iso"
+if [ $? -ne 0 ]; then
+    echo -e "${RED}Failed to create bootable ISO${NC}"
+    exit 1
 else
-    echo -e "${YELLOW}Skipping ISO creation. xorriso not found.${NC}"
+    echo -e "${GREEN}Bootable ISO created successfully!${NC}"
 fi
 
 echo -e "${GREEN}Build complete!${NC}"
@@ -142,4 +128,3 @@ EOF
 chmod +x run.sh
 echo -e "${GREEN}Created run.sh script for QEMU testing${NC}"
 echo "To run WolfOS in QEMU, execute: ./run.sh"
-
