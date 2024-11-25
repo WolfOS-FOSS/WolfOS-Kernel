@@ -22,10 +22,6 @@ echo -e "${GREEN}Build directory created at $OUTPUT_DIR${NC}"
 
 echo -e "${YELLOW}Starting WolfOS build process...${NC}"
 
-
-TOTAL=`stat -c %s $OUTPUT`
-echo "concatenated bootloader, and kernel into ::> $OUTPUT"
-
 # Compile kernel
 echo -e "${YELLOW}Compiling kernel...${NC}"
 g++ -m64 \
@@ -41,7 +37,7 @@ g++ -m64 \
     -O2 \
     -T ./kernel.ld \
     -c "$KERNEL_SOURCE" \
-    -o "$OUTPUT_DIR/kernel.efi"
+    -o "kernel/src/boot/kernel.efi"
 if [ $? -ne 0 ]; then
     echo -e "${RED}Failed to compile kernel${NC}"
     exit 1
@@ -49,13 +45,15 @@ else
     echo -e "${GREEN}Kernel successfully compiled!${NC}"
 fi
 
+
 # Build bootloader
 echo -e "${YELLOW}Building bootloader...${NC}"
 INPUT="kernel/src/boot/boot.asm"
 OUTPUT="build/final.img"
 KERN="kernel/src/boot/kernel.efi"
 
-K_SZ=$(stat -c %s $KERN)
+# Get the size of the kernel file using wc -c (in bytes)
+K_SZ=$(wc -c < $KERN)
 
 # padding to make it up to a 512-byte boundary for the kernel
 K_PAD=$((512 - K_SZ % 512))
@@ -92,6 +90,7 @@ if [[ $PADDING_SIZE -gt 0 ]]; then
 fi
 
 echo -e "${GREEN}Bootloader built successfully!${NC}"
+
 
 
 # Create disk image
