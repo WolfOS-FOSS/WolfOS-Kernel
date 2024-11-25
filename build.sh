@@ -22,23 +22,6 @@ echo -e "${GREEN}Build directory created at $OUTPUT_DIR${NC}"
 
 echo -e "${YELLOW}Starting WolfOS build process...${NC}"
 
-# Build bootloader
-echo -e "${YELLOW}Building bootloader...${NC}"
-INPUT="kernel/src/boot/boot.asm"
-OUTPUT="build/final.img"
-KERN="kernel/src/boot/kernel.bin"
-
-
-K_SZ=`stat -c %s $KERN`
-
-#padding to make it up to a sector
-K_PAD=$((512 - $K_SZ % 512))
-
-nasm -o $OUTPUT -D initRdSizeDef=$R_SZ $INPUT
-cat $KERN >> $OUTPUT
-if [[ $K_PAD -lt 512 ]]; then
-    dd if=/dev/zero bs=1 count=$K_PAD >> $OUTPUT
-fi
 
 TOTAL=`stat -c %s $OUTPUT`
 echo "concatenated bootloader, and kernel into ::> $OUTPUT"
@@ -66,6 +49,51 @@ else
     echo -e "${GREEN}Kernel successfully compiled!${NC}"
 fi
 
+# Build bootloader
+echo -e "${YELLOW}Building bootloader...${NC}"
+INPUT="kernel/src/boot/boot.asm"
+OUTPUT="build/final.img"
+KERN="kernel/src/boot/kernel.efi"
+
+K_SZ=$(stat -c %s $KERN)
+
+# padding to make it up to a 512-byte boundary for the kernel
+K_PAD=$((512 - K_SZ % 512))
+
+# Get the size of the initial RAM disk, if any (e.g., 0 if none)
+R_SZ=0  # You can calculate this if you have an initrd (change as needed)
+
+# Calculate the total size we need for the image to be exactly 8MB
+TOTAL_SIZE=8388608  # 8MB in bytes
+
+# Current image size (kernel + padding + initrd)
+CURRENT_SIZE=$((K_SZ + R_SZ + K_PAD))
+
+# Calculate how much more padding is required
+REQUIRED_PADDING=$((TOTAL_SIZE - CURRENT_SIZE))
+
+# Make sure we're not padding too little
+if [[ $REQUIRED_PADDING -gt 0 ]]; then
+    PADDING_SIZE=$REQUIRED_PADDING
+else
+    PADDING_SIZE=0
+fi
+
+# Assemble the bootloader image
+nasm -o $OUTPUT -D initRdSizeDef=$R_SZ $INPUT
+cat $KERN >> $OUTPUT
+if [[ $K_PAD -lt 512 ]]; then
+    dd if=/dev/zero bs=1 count=$K_PAD >> $OUTPUT
+fi
+
+# Add additional padding to make the image exactly 8MB
+if [[ $PADDING_SIZE -gt 0 ]]; then
+    dd if=/dev/zero bs=1 count=$PADDING_SIZE >> $OUTPUT
+fi
+
+echo -e "${GREEN}Bootloader built successfully!${NC}"
+
+
 # Create disk image
 echo -e "${YELLOW}Creating disk image...${NC}"
 # Create a 64MB disk image
@@ -84,7 +112,7 @@ fi
 
 # Write kernel starting from second sector
 echo -e "${YELLOW}Writing kernel to disk image...${NC}"
-dd if="$OUTPUT_DIR/kernel.bin" of="$OUTPUT_DIR/wolf_os.img" seek=1 conv=notrunc 2>/dev/null
+dd if="$OUTPUT_DIR/kernel.efi" of="$OUTPUT_DIR/wolf_os.img" seek=1 conv=notrunc 2>/dev/null
 if [ $? -ne 0 ]; then
     echo -e "${RED}Failed to write kernel to disk image${NC}"
     exit 1
