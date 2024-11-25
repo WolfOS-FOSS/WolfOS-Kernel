@@ -130,7 +130,7 @@ void default_interrupt_handler(void* banana_frame, unsigned long int interrupt_t
     (void)interrupt_type; // Silence unused parameter warning
 
     while (1) {
-        printf(""); // Infinite loop, presumably for debugging
+        print(""); // Infinite loop, presumably for debugging
     }
 }
 
