@@ -24,13 +24,24 @@ echo -e "${YELLOW}Starting WolfOS build process...${NC}"
 
 # Build bootloader
 echo -e "${YELLOW}Building bootloader...${NC}"
-nasm -f bin "$BOOTLOADER" -o "$OUTPUT_DIR/boot.bin"
-if [ $? -ne 0 ]; then
-    echo -e "${RED}Failed to build bootloader${NC}"
-    exit 1
-else
-    echo -e "${GREEN}Bootloader successfully built!${NC}"
+INPUT="kernel/src/boot/boot.asm"
+OUTPUT="build/final.img"
+KERN="kernel/src/boot/kernel.bin"
+
+
+K_SZ=`stat -c %s $KERN`
+
+#padding to make it up to a sector
+K_PAD=$((512 - $K_SZ % 512))
+
+nasm -o $OUTPUT -D initRdSizeDef=$R_SZ $INPUT
+cat $KERN >> $OUTPUT
+if [[ $K_PAD -lt 512 ]]; then
+    dd if=/dev/zero bs=1 count=$K_PAD >> $OUTPUT
 fi
+
+TOTAL=`stat -c %s $OUTPUT`
+echo "concatenated bootloader, and kernel into ::> $OUTPUT"
 
 # Compile kernel
 echo -e "${YELLOW}Compiling kernel...${NC}"
@@ -59,7 +70,7 @@ echo -e "${YELLOW}Linking kernel...${NC}"
 ld \
     -T "$LINKER_SCRIPT" \
     -o "$OUTPUT_DIR/kernel.bin" \
-    "$OUTPUT_DIR/kernel.o"
+    "$OUTPUT_DIR/kernel.bin"
 if [ $? -ne 0 ]; then
     echo -e "${RED}Failed to link kernel${NC}"
     exit 1
@@ -94,11 +105,9 @@ else
 fi
 
 # Create bootable ISO
-echo -e "${YELLOW}Creating bootable ISO...${NC}"
-mkdir -p "$OUTPUT_DIR/iso/boot"
-cp "$OUTPUT_DIR/wolf_os.img" "$OUTPUT_DIR/iso/boot/"
-xorriso -as mkisofs -b boot/wolf_os.img -no-emul-boot -boot-load-size 4 \
-        -boot-info-table -o "$OUTPUT_DIR/wolf_os.iso" "$OUTPUT_DIR/iso"
+echo -e "${BLUE}Creating bootable ISO...${NC}"
+xorriso -as mkisofs -b build/wolf_os.img -no-emul-boot -boot-load-size 4 \
+        -boot-info-table -o "iso/wolf_os.iso""
 if [ $? -ne 0 ]; then
     echo -e "${RED}Failed to create bootable ISO${NC}"
     exit 1
