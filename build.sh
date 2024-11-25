@@ -56,26 +56,14 @@ g++ -m64 \
     -Wall \
     -Wextra \
     -O2 \
+    -T ./kernel.ld \
     -c "$KERNEL_SOURCE" \
-    -o "$OUTPUT_DIR/kernel.o"
+    -o "$OUTPUT_DIR/kernel.efi"
 if [ $? -ne 0 ]; then
     echo -e "${RED}Failed to compile kernel${NC}"
     exit 1
 else
     echo -e "${GREEN}Kernel successfully compiled!${NC}"
-fi
-
-# Link kernel
-echo -e "${YELLOW}Linking kernel...${NC}"
-ld \
-    -T "$LINKER_SCRIPT" \
-    -o "$OUTPUT_DIR/kernel.bin" \
-    "$OUTPUT_DIR/kernel.bin"
-if [ $? -ne 0 ]; then
-    echo -e "${RED}Failed to link kernel${NC}"
-    exit 1
-else
-    echo -e "${GREEN}Kernel successfully linked!${NC}"
 fi
 
 # Create disk image
